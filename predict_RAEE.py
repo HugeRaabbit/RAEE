@@ -38,10 +38,7 @@ def build_early_exit_table(
     inputs = tokenizer(
         input_texts, 
         padding='max_length', 
-        truncation=True if max_length > 0 else False, 
         max_length=max_length if max_length > 0 else None, 
-        add_special_tokens=False,
-        return_tensors="pt", 
     )
     label_ids = torch.Tensor([convert_token_to_id(tokenizer, label) for label in labels])
     outputs = model(**inputs, output_hidden_states=True)
