@@ -33,14 +33,12 @@ def build_early_exit_table(
     return_embs=False,
 ):
     input_texts = [format_input_text(template, tokenizer, data)]
-    labels = [label_word_mapping[str(data.label)]]
     gold_labels = [convert_token_to_id(tokenizer, labels[i]) for i in range(len(labels))]
     inputs = tokenizer(
         input_texts, 
         padding='max_length', 
         max_length=max_length if max_length > 0 else None, 
     )
-    label_ids = torch.Tensor([convert_token_to_id(tokenizer, label) for label in labels])
     outputs = model(**inputs, output_hidden_states=True)
     
     final_hiddens_state = outputs.hidden_states[EarlyExit_layer]
