@@ -31,7 +31,7 @@ def build_early_exit_table(
     embeddings = embeddings[:, 0, :]
     for i in range(num_layers + 1):
         hidden_state = hidden_states[i]
-        inter_logits = model.lm_head(hidden_state[torch.arange(hidden_state.size(0)), mask_pos])
+        inter_logits = model.lm_head(hidden_state[torch.arange(hidden_state.size(0))])
         inter_probs.append(torch.softmax(inter_logits, dim=-1))
     inter_probs = torch.stack(inter_probs).permute(1, 0, 2)
     early_exit_max_probs, early_exit_token_ids = torch.max(inter_probs, dim=-1)
@@ -41,7 +41,7 @@ def build_early_exit_table(
         early_exit_table_i = [
             [
                 i,
-                early_exit_max_probs[j][i].cpu().detach().item(),
+                early_exit_max_probs[j][i],
             ]
             for i, pred_id in enumerate(early_exit_predictions[j]) if pred_id == label_ids[j]
         ]
