@@ -64,29 +64,6 @@ def build_early_exit_table(
 
     return final_predictions, gold_labels, origin_predictions
 
-def prepare_inputs(
-    template,
-    data, 
-    label_word_mapping,
-    tokenizer, 
-    max_length, 
-    model, 
-    mask_pos=False,
-):
-    input_texts = [format_input_text(template, tokenizer, example) for example in data]
-    labels = [label_word_mapping[example.label] for example in data]
-    inputs = tokenizer(
-        input_texts, 
-        padding='max_length', 
-        truncation=True if max_length > 0 else False, 
-        max_length=max_length if max_length > 0 else None, 
-        add_special_tokens=False,
-        return_tensors="pt", 
-    )
-    return inputs
-
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name_or_path", type=str, required=True) ### path of your backbone model
@@ -120,34 +97,16 @@ def main():
         query_tokenizer = None
         query_model = None
     train_data, dev_data, test_data = data_loader(args.task_name, args.data_dir)
-    label_word_mapping = json.loads(args.mapping)
-    label_word_list = [convert_token_to_id(tokenizer, token) for token in label_word_mapping.values()]
-    if config.model_type in bert_models_mapping:
-        model.masked_logits.label_word_list = label_word_list
     query_data = test_data
-    num_data = len(query_data)
-    num_layers = 0
-    if "num_hidden_layers" in config.__dict__:
-        num_layers = config.num_hidden_layers
-        print("num_layers", num_layers)
-    num_batches = int(np.ceil(num_data / args.batch_size))
 
-    index_path = os.path.join(args.index_path, f"{args.task_name}_bert_base_uncased_{args.dataset_split}_{args.index_type}.index")
+    index_path = os.path.join(args.index_path, f"{args.task_name}_{args.dataset_split}_{args.index_type}.index")
     index = faiss.read_index(index_path)
-    table_path = os.path.join(args.table_dir, f"{args.task_name}_{model_name}_{args.dataset_split}_state_scores.json")
+    table_path = os.path.join(args.table_dir, f"{args.task_name}_{args.dataset_split}_state_scores.json")
     with open(table_path, 'r', encoding='utf-8') as jsonfile:
         tables = json.load(jsonfile)
-      
-    all_preds = None
-    all_labels = None
-    all_preds_part = None
-    all_labels_part = None
-    origin_preds = None
-    origin_preds_part = None
-    total_EarlyExit_layers = []
+
     for i in tqdm(range(num_batches), total=num_batches):
         data = query_data[i*args.batch_size:(i+1)*args.batch_size]
-        
         if args.query_encoder_path != None:
             query_embs = collect_query_embs(
                 prompt_id_base=i*args.batch_size, 
@@ -174,15 +133,13 @@ def main():
                 inputs_embeds=None,
                 past_key_values_length=None,
             )
-
+            
         distances, prompt_ids = index.search(query_embs, args.topk)
         weights = compute_inverse_ratio_weights(distances, prompt_ids)
-
-        EarlyExit_layers = []
+        
         for j in range(len(data)):
             EarlyExit_layer = None
             max_probability = -1 
-            layer_probability_sum = {} 
             for k in range(args.topk):
                 prompt_id = prompt_ids[j][k]
                 distance = distances[j][k]
@@ -249,8 +206,8 @@ def main():
     print('Results of origin model:')
     for k, v in origin_res.items():
         print(f'\t{k}:{v}')
-            
-            
+
+
 
 if __name__ == "__main__":
     main()
