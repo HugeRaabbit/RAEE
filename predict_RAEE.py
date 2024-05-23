@@ -73,7 +73,6 @@ def prepare_inputs(
     model, 
     mask_pos=False,
 ):
-    batch_size = len(data)
     input_texts = [format_input_text(template, tokenizer, example) for example in data]
     labels = [label_word_mapping[example.label] for example in data]
     inputs = tokenizer(
