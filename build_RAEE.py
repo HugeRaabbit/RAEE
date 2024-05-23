@@ -24,10 +24,7 @@ def build_early_exit_table(
     inputs = tokenizer(
         input_texts, 
         padding='max_length', 
-        truncation=True if max_length > 0 else False, 
         max_length=max_length if max_length > 0 else None, 
-        add_special_tokens=False,
-        return_tensors="pt", 
     )
     outputs = model(**inputs, output_hidden_states=True)
     embeddings = hidden_states[0].detach().cpu().numpy()
@@ -49,13 +46,6 @@ def build_early_exit_table(
             ]
             for i, pred_id in enumerate(early_exit_predictions[j]) if pred_id == label_ids[j]
         ]
-        if len(early_exit_table_i) == 0:
-            early_exit_table_i = [
-                [
-                    num_layers,
-                    final_max_probs[j].cpu().detach().item(), 
-                ]
-            ]
 
     if return_embs:
         return early_exit_table, embeddings
@@ -99,50 +89,45 @@ def main():
     train_data, dev_data, test_data = data_loader(args.task_name, args.data_dir)
     build_data = train_data + dev_data
     
-    for args.dataset_split in [1]:
-        num_data_split = int(num_data * args.dataset_split)
-        build_data_split = build_data[:num_data_split]
-        num_batches = int(np.ceil(num_data_split / args.batch_size))
-      
-        for i in tqdm(range(num_batches), total=num_batches):
-            data = build_data_split[i * args.batch_size: (i + 1) * args.batch_size]
-            results = build_early_exit_table(
+    for i in tqdm(range(num_batches), total=num_batches):
+        data = build_data_split[i * args.batch_size: (i + 1) * args.batch_size]
+        results = build_early_exit_table(
+            prompt_id_base=i*args.batch_size, 
+            template=args.template, 
+            data=data, 
+            label_word_mapping=label_word_mapping, 
+            tokenizer=tokenizer, 
+            max_length=args.max_length, 
+            model=model, 
+            num_layers=num_layers, 
+            mask_pos=(model_name in bert_models_mapping),
+            return_embs=(args.query_encoder_path == None),
+        )
+        table = results[:1]
+        if args.query_encoder_path != None:
+            query_embs = collect_query_embs(
                 prompt_id_base=i*args.batch_size, 
-                template=args.template, 
+                template=args.template,
                 data=data, 
-                label_word_mapping=label_word_mapping, 
-                tokenizer=tokenizer, 
+                tokenizer=query_tokenizer, 
                 max_length=args.max_length, 
-                model=model, 
-                num_layers=num_layers, 
-                mask_pos=(model_name in bert_models_mapping),
-                return_embs=(args.query_encoder_path == None),
+                encoder=query_model,
             )
-            table = results[:1]
-            if args.query_encoder_path != None:
-                query_embs = collect_query_embs(
-                    prompt_id_base=i*args.batch_size, 
-                    template=args.template,
-                    data=data, 
-                    tokenizer=query_tokenizer, 
-                    max_length=args.max_length, 
-                    encoder=query_model,
-                )
-            else:
-                query_embs = results[1]
-            tables.update(table)
-            query_embeddings.append(query_embs)
-          
-        output_path = os.path.join(args.output_dir, f"{args.task_name}_{args.dataset_split}_state_scores.json")
-        with open(output_path, 'w', encoding='utf-8') as jsonfile:
-            json.dump(tables, jsonfile, ensure_ascii=False, indent=4)
-          
-        query_embeddings = np.concatenate(query_embeddings, axis=0)
-        index = faiss.index_factory(query_embeddings.shape[1], args.index_type)
-        index.train(query_embeddings)
-        index.add(query_embeddings)
-        index_path = os.path.join(args.output_dir, f"{args.task_name}_{args.dataset_split}_{args.index_type}.index")
-        faiss.write_index(index, index_path)
+        else:
+            query_embs = results[1]
+        tables.update(table)
+        query_embeddings.append(query_embs)
+      
+    output_path = os.path.join(args.output_dir, f"{args.task_name}_{args.dataset_split}_state_scores.json")
+    with open(output_path, 'w', encoding='utf-8') as jsonfile:
+        json.dump(tables, jsonfile, ensure_ascii=False, indent=4)
+      
+    query_embeddings = np.concatenate(query_embeddings, axis=0)
+    index = faiss.index_factory(query_embeddings.shape[1], args.index_type)
+    index.train(query_embeddings)
+    index.add(query_embeddings)
+    index_path = os.path.join(args.output_dir, f"{args.task_name}_{args.dataset_split}_{args.index_type}.index")
+    faiss.write_index(index, index_path)
 
 if __name__ == "__main__":
     main()
