@@ -45,9 +45,8 @@ def build_early_exit_table(
     )
     label_ids = torch.Tensor([convert_token_to_id(tokenizer, label) for label in labels])
     outputs = model(**inputs, output_hidden_states=True)
-    hidden_states = outputs.hidden_states
+    
     final_hiddens_state = outputs.hidden_states[EarlyExit_layer]
-  
     final_hiddens_state = final_hiddens_state[torch.arange(final_hiddens_state.size(0)), mask_pos]
     final_logits = model.lm_head(final_hiddens_state)
     final_logits = model.masked_logits(final_logits)
