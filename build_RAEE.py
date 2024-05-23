@@ -32,7 +32,6 @@ def build_early_exit_table(
     for i in range(num_layers + 1):
         hidden_state = hidden_states[i]
         inter_logits = model.lm_head(hidden_state[torch.arange(hidden_state.size(0)), mask_pos])
-        inter_logits = model.masked_logits(inter_logits)
         inter_probs.append(torch.softmax(inter_logits, dim=-1))
     inter_probs = torch.stack(inter_probs).permute(1, 0, 2)
     early_exit_max_probs, early_exit_token_ids = torch.max(inter_probs, dim=-1)
