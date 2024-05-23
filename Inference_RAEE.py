@@ -153,11 +153,8 @@ def main():
                     for exit_item in high_prob_exit_info:
                         layer = exit_item[0] 
                         probability = exit_item[1] 
-                        prob_weighted = probability * weight
-                        if layer in layer_probability_sum:
-                            layer_probability_sum[layer] += prob_weighted
-                        else:
-                            layer_probability_sum[layer] = prob_weighted                   
+                        prob_weighted = probability * weight   
+                        layer_probability_sum[layer] = prob_weighted                   
                 max_layer = max(layer_probability_sum.items(), key=lambda item: item[1])[0]
             EarlyExit_layer = max_layer                      
             EarlyExit_layers.append(EarlyExit_layer)
