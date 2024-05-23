@@ -94,7 +94,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name_or_path", type=str, required=True) ### path of your backbone model
     parser.add_argument("--task_name", type=str, required=True) ### name of Task
-    parser.add_argument("--data_dir", type=str, required=True) ### path of your task's data
+    parser.add_argument("--data_dir", type=str, required=True) ### path of your Task's data
     parser.add_argument("--table_dir", type=str, required=True) ### path of your tables from the building process
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--max_length", type=int, default=512)
