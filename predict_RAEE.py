@@ -42,7 +42,7 @@ def build_early_exit_table(
     outputs = model(**inputs, output_hidden_states=True)
     
     final_hiddens_state = outputs.hidden_states[EarlyExit_layer]
-    final_hiddens_state = final_hiddens_state[torch.arange(final_hiddens_state.size(0)), mask_pos]
+    final_hiddens_state = final_hiddens_state[torch.arange(final_hiddens_state.size(0))]
     final_logits = model.lm_head(final_hiddens_state)
     final_logits = model.masked_logits(final_logits)
     final_probs = torch.softmax(final_logits, dim=-1)
@@ -50,7 +50,7 @@ def build_early_exit_table(
     final_predictions = [model.masked_logits.label_word_list[i] for i in final_token_ids]
 
     origin_hiddens_state = outputs.hidden_states[-1]
-    origin_hiddens_state = origin_hiddens_state[torch.arange(origin_hiddens_state.size(0)), mask_pos]
+    origin_hiddens_state = origin_hiddens_state[torch.arange(origin_hiddens_state.size(0))]
     origin_logits = model.lm_head(origin_hiddens_state)
     origin_logits = model.masked_logits(origin_logits)
     origin_probs = torch.softmax(origin_logits, dim=-1)
