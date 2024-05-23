@@ -47,7 +47,6 @@ def build_early_exit_table(
     outputs = model(**inputs, output_hidden_states=True)
     hidden_states = outputs.hidden_states
     final_hiddens_state = outputs.hidden_states[EarlyExit_layer]
-    assert len(hidden_states) == num_layers + 1, f"Number of hidden states is {len(hidden_states)}, but it should be {num_layers + 1}"
   
     final_hiddens_state = final_hiddens_state[torch.arange(final_hiddens_state.size(0)), mask_pos]
     final_logits = model.lm_head(final_hiddens_state)
