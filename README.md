@@ -22,7 +22,6 @@ the model corresponding to `run_encoder.sh` is `Roberta-Large`;
 the model corresponding to `run_encoder_decoder.sh` is `T5-Large`.
 
 Before running the script, remember to fill in the corresponding file path or model path in each `build_table_[MODEL_NAME].sh` or `predict_[MODEL_NAME].sh` script. 
-Note: Do not set `BATCH_SIZE` in `build_table_t5.sh` and `predict_t5.sh` to `1`.
 
 ### Note:
 
