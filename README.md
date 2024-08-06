@@ -24,7 +24,8 @@ the model corresponding to `run_encoder_decoder.sh` is `T5-Large`.
 Before running the script, remember to fill in the corresponding file path or model path in each `build_table_[MODEL_NAME].sh` or `predict_[MODEL_NAME].sh` script. 
 Note: Do not set `BATCH_SIZE` in `build_table_t5.sh` and `predict_t5.sh` to `1`.
 
-Note:
+### Note:
+
 `MODEL_NAME_OR_PATH` should be filled in with the storage path of `Llama-3-8B`/`Roberta-Large`/`T5-Large`;
 
 `QUERY_ENCODER_PATH` should be filled in with the storage path of `Bert_base_uncased`; 
