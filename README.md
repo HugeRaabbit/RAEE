@@ -9,7 +9,7 @@ pip install -r requirements.txt
 
 ## Usage
 We experimented with 3 kinds of models, 2 processing steps on 8 tasks.
-Please see the scripts and run the shell files to build or predict on each task.
+Please see the `scripts` and run the shell files to build or predict on each task.
 
 ```
 bash run_[MODEL_TYPE].sh
