@@ -1,3 +1,11 @@
-# RAEE
-
-The code is being sorted out. . . . . .
+# Python
+*.pyc
+__pycache__/
+venv/
+env/
+/.vscode/
+/.idea/
+/.pytest_cache/
+/.coverage
+/.cache/
+/.mypy_cache/
